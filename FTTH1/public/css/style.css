@@ -1,0 +1,86 @@
+/* Estilos para los puertos NAP */
+.port {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.port.bg-success {
+    background-color: #28a745 !important; /* Verde más intenso para puertos libres */
+}
+
+.port.bg-danger {
+    background-color: #dc3545 !important; /* Rojo más intenso para puertos ocupados */
+}
+
+/* Mejoras visuales adicionales */
+#napInfoContainer {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+/* Asegurarse de que la información de NAP sea claramente visible */
+#napInfoContainer .row strong {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Mejor visualización para la leyenda de colores */
+.badge {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* Estilos para la hoja técnica */
+.form-label.fw-bold {
+    font-weight: 600 !important;
+}
+
+/* Mejorar visualización de materiales en hoja técnica */
+#materialesTable th {
+    background-color: #f8f9fa;
+}
+
+/* Estilos para el contenedor del código de barras */
+#barcodeContainer {
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#barcodeSVG {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Estilos para el modal de información del cliente */
+#clienteModal .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#clienteModal .card-header {
+    padding: 0.75rem 1.25rem;
+}
+
+#clienteModal strong {
+    color: #495057;
+}
+
+/* Hacer que los puertos ocupados sean interactivos */
+.port.bg-danger:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    transition: transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+} 
