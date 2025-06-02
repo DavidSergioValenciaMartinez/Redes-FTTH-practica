@@ -1,0 +1,235 @@
+-- Base de datos: solufiber_ftth
+-- Optimizado para MySQL 8.0+
+-- Codificación: UTF8MB4 para soportar caracteres internacionales
+-- Fecha: 12-05-2025
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+-- Crear base de datos si no existe
+CREATE DATABASE IF NOT EXISTS `solufiber_ftth` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `solufiber_ftth`;
+
+-- Tabla: tbl_usuarios
+-- Almacena información de usuarios (administradores, técnicos, clientes)
+CREATE TABLE `tbl_usuarios` (
+  `cedula_identidad` VARCHAR(20) NOT NULL COMMENT 'Cédula de identidad o documento único del usuario',
+  `nombre_usuario` VARCHAR(50) NOT NULL COMMENT 'Nombre de usuario para login (único)',
+  `contrasena_hash` VARCHAR(255) NOT NULL COMMENT 'Contraseña encriptada (bcrypt)',
+  `creado_en` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de creación',
+  `ultimo_acceso` DATETIME DEFAULT NULL COMMENT 'Fecha del último acceso',
+  `nombre_completo` VARCHAR(100) NOT NULL COMMENT 'Nombre completo del usuario',
+  `telefono` VARCHAR(20) DEFAULT NULL COMMENT 'Teléfono de contacto',
+  `direccion` VARCHAR(255) DEFAULT NULL COMMENT 'Dirección del usuario',
+  `correo` VARCHAR(100) DEFAULT NULL COMMENT 'Correo electrónico (único)',
+  `fotografia` VARCHAR(255) DEFAULT NULL COMMENT 'Ruta o URL de la fotografía del usuario',
+  `fecha_nacimiento` DATE NOT NULL COMMENT 'Fecha de nacimiento del usuario',
+  PRIMARY KEY (`cedula_identidad`),
+  UNIQUE KEY `uk_nombre_usuario` (`nombre_usuario`),
+  UNIQUE KEY `uk_correo` (`correo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Datos iniciales para tbl_usuarios
+INSERT INTO `tbl_usuarios` (
+  `cedula_identidad`, `nombre_usuario`, `contrasena_hash`, `creado_en`, 
+  `ultimo_acceso`, `nombre_completo`, `telefono`, `direccion`, `correo`, 
+  `fotografia`, `fecha_nacimiento`
+) VALUES (
+  'V-12345678', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
+  '2025-05-03 01:18:00', NULL, 'Administrador del Sistema', '+59112345678', 
+  'Av. Principal #100, Zona Central', 'admin@solufiber-srl.com', 
+  '/images/usuarios/V-12345678.jpg', '1985-04-15'
+);
+
+-- Tabla: tbl_administradores
+-- Asocia usuarios con roles de administrador y niveles de acceso
+CREATE TABLE `tbl_administradores` (
+  `id_administrador` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del administrador',
+  `cedula_identidad` VARCHAR(20) NOT NULL COMMENT 'Cédula del usuario asociado',
+  `nivel_acceso` ENUM('total', 'reportes', 'configuraciones') NOT NULL COMMENT 'Nivel de permisos',
+  PRIMARY KEY (`id_administrador`),
+  UNIQUE KEY `uk_cedula_identidad` (`cedula_identidad`),
+  CONSTRAINT `fk_admin_usuario` FOREIGN KEY (`cedula_identidad`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Datos iniciales para tbl_administradores
+INSERT INTO `tbl_administradores` (`id_administrador`, `cedula_identidad`, `nivel_acceso`) 
+VALUES (1, 'V-12345678', 'total');
+
+-- Tabla: tbl_tecnicos
+-- Asocia usuarios con roles de técnico
+CREATE TABLE `tbl_tecnicos` (
+  `id_tecnico` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del técnico',
+  `cedula_identidad` VARCHAR(20) NOT NULL COMMENT 'Cédula del usuario asociado',
+  `certificacion` VARCHAR(100) DEFAULT NULL COMMENT 'Certificaciones técnicas (ej. FTTH, GPON)',
+  `area_asignada` VARCHAR(100) DEFAULT NULL COMMENT 'Zona o departamento asignado',
+  PRIMARY KEY (`id_tecnico`),
+  UNIQUE KEY `uk_cedula_identidad` (`cedula_identidad`),
+  CONSTRAINT `fk_tecnico_usuario` FOREIGN KEY (`cedula_identidad`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_clientes
+-- Asocia usuarios con roles de cliente
+CREATE TABLE `tbl_clientes` (
+  `id_cliente` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del cliente',
+  `cedula_identidad` VARCHAR(20) NOT NULL COMMENT 'Cédula del usuario asociado',
+  PRIMARY KEY (`id_cliente`),
+  UNIQUE KEY `uk_cedula_identidad` (`cedula_identidad`),
+  CONSTRAINT `fk_cliente_usuario` FOREIGN KEY (`cedula_identidad`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_departamentos
+-- Almacena departamentos geográficos para organizar cajas NAP
+CREATE TABLE `tbl_departamentos` (
+  `id_departamento` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del departamento',
+  `nombre_departamento` VARCHAR(100) NOT NULL COMMENT 'Nombre del departamento (ej. Cochabamba)',
+  `descripcion` TEXT COMMENT 'Detalles adicionales (opcional)',
+  PRIMARY KEY (`id_departamento`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_cajas_nap
+-- Representa las cajas de acceso a la red (NAP)
+CREATE TABLE `tbl_cajas_nap` (
+  `id_caja` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la caja NAP',
+  `id_departamento` INT NOT NULL COMMENT 'Departamento asociado',
+  `codigo_caja` VARCHAR(50) NOT NULL COMMENT 'Código único (ej. NAP001)',
+  `ubicacion` VARCHAR(255) NOT NULL COMMENT 'Dirección o coordenadas GPS',
+  `total_puertos` INT NOT NULL COMMENT 'Número total de puertos (1-16)',
+  `puertos_disponibles` INT NOT NULL DEFAULT 0 COMMENT 'Número de puertos disponibles',
+  `puertos_ocupados` INT NOT NULL DEFAULT 0 COMMENT 'Número de puertos ocupados',
+  `potencia_dbm` DECIMAL(10,2) DEFAULT NULL COMMENT 'Potencia óptica promedio en dBm (ej. -15.5)',
+  `estado` ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo' COMMENT 'Estado de la caja NAP',
+  `creado_en` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro',
+  `fabricante` VARCHAR(100) DEFAULT NULL COMMENT 'Nombre del fabricante (ej. Nokia)',
+  `modelo` VARCHAR(100) DEFAULT NULL COMMENT 'Modelo de la caja (ej. NAP-16P)',
+  `capacidad` VARCHAR(50) DEFAULT NULL COMMENT 'Capacidad descriptiva (ej. 8 puertos)',
+  PRIMARY KEY (`id_caja`),
+  UNIQUE KEY `uk_codigo_caja` (`codigo_caja`),
+  CONSTRAINT `fk_caja_departamento` FOREIGN KEY (`id_departamento`) REFERENCES `tbl_departamentos` (`id_departamento`) ON DELETE RESTRICT,
+  CONSTRAINT `chk_total_puertos` CHECK (`total_puertos` BETWEEN 1 AND 16)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_instalaciones
+-- Registra actividades de instalación, mantenimiento o reparación de cajas NAP
+CREATE TABLE `tbl_instalaciones` (
+  `id_instalacion` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la instalación',
+  `id_caja` INT NOT NULL COMMENT 'Caja NAP asociada',
+  `cedula_identidad_tecnico` VARCHAR(20) NOT NULL COMMENT 'Cédula del técnico responsable',
+  `tipo_instalacion` ENUM('nueva', 'mantenimiento', 'reparacion') NOT NULL COMMENT 'Tipo de instalación',
+  `fecha_instalacion` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de instalación',
+  `observaciones` TEXT COMMENT 'Notas adicionales',
+  PRIMARY KEY (`id_instalacion`),
+  CONSTRAINT `fk_instalacion_caja` FOREIGN KEY (`id_caja`) REFERENCES `tbl_cajas_nap` (`id_caja`) ON DELETE CASCADE,
+  CONSTRAINT `fk_instalacion_tecnico` FOREIGN KEY (`cedula_identidad_tecnico`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_puertos
+-- Gestiona los puertos de las cajas NAP, incluyendo estado y detalles del splitter
+CREATE TABLE `tbl_puertos` (
+  `id_puerto` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del puerto',
+  `id_caja` INT NOT NULL COMMENT 'Caja NAP asociada',
+  `numero_puerto` INT NOT NULL COMMENT 'Número del puerto (1-16)',
+  `estado` ENUM('disponible', 'ocupado', 'defectuoso') NOT NULL COMMENT 'Estado del puerto',
+  `cedula_identidad_cliente` VARCHAR(20) DEFAULT NULL COMMENT 'Cédula del cliente asignado (opcional)',
+  `splitter_tipo` ENUM('balanceado', 'desbalanceado') DEFAULT NULL COMMENT 'Tipo de splitter',
+  `splitter_ratio` ENUM('1:2', '1:4', '1:8', '1:16') DEFAULT NULL COMMENT 'Proporción de división',
+  `splitter_atenuacion_db` DECIMAL(10,2) DEFAULT NULL COMMENT 'Atenuación del splitter en dB',
+  `actualizado_en` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Fecha de última actualización',
+  PRIMARY KEY (`id_puerto`),
+  CONSTRAINT `fk_puerto_caja` FOREIGN KEY (`id_caja`) REFERENCES `tbl_cajas_nap` (`id_caja`) ON DELETE CASCADE,
+  CONSTRAINT `fk_puerto_cliente` FOREIGN KEY (`cedula_identidad_cliente`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE SET NULL,
+  CONSTRAINT `chk_numero_puerto` CHECK (`numero_puerto` BETWEEN 1 AND 16)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_calculos_atenuacion
+-- Almacena cálculos de atenuación para los puertos
+CREATE TABLE `tbl_calculos_atenuacion` (
+  `id_calculo` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del cálculo',
+  `id_puerto` INT NOT NULL COMMENT 'Puerto asociado',
+  `tipo_calculo` ENUM('balanceado', 'desbalanceado') NOT NULL COMMENT 'Tipo de cálculo',
+  `distancia_km` DECIMAL(10,2) NOT NULL COMMENT 'Distancia de fibra en km',
+  `conectores` INT DEFAULT 0 COMMENT 'Número de conectores',
+  `fusiones` INT DEFAULT 0 COMMENT 'Número de fusiones',
+  `atenuacion_total_db` DECIMAL(10,2) NOT NULL COMMENT 'Atenuación total en dB',
+  `calculado_por` VARCHAR(20) NOT NULL COMMENT 'Cédula del usuario que calculó',
+  `calculado_en` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha del cálculo',
+  PRIMARY KEY (`id_calculo`),
+  CONSTRAINT `fk_calculo_puerto` FOREIGN KEY (`id_puerto`) REFERENCES `tbl_puertos` (`id_puerto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_calculo_usuario` FOREIGN KEY (`calculado_por`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_mediciones
+-- Registra mediciones ópticas de los puertos
+CREATE TABLE `tbl_mediciones` (
+  `id_medicion` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la medición',
+  `id_puerto` INT NOT NULL COMMENT 'Puerto medido',
+  `potencia_dbm` DECIMAL(10,2) NOT NULL COMMENT 'Potencia óptica en dBm',
+  `atenuacion_db` DECIMAL(10,2) NOT NULL COMMENT 'Atenuación medida en dB',
+  `medido_por` VARCHAR(20) NOT NULL COMMENT 'Cédula del usuario que midió',
+  `medido_en` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de medición',
+  `fuente` ENUM('manual', 'iot') DEFAULT 'manual' COMMENT 'Fuente de la medición',
+  PRIMARY KEY (`id_medicion`),
+  CONSTRAINT `fk_medicion_puerto` FOREIGN KEY (`id_puerto`) REFERENCES `tbl_puertos` (`id_puerto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_medicion_usuario` FOREIGN KEY (`medido_por`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_hoja_tecnica_cajas_nap
+-- Almacena información técnica detallada de las cajas NAP
+CREATE TABLE `tbl_hoja_tecnica_cajas_nap` (
+  `id_hoja_caja` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la hoja técnica',
+  `id_caja` INT NOT NULL COMMENT 'Caja NAP asociada',
+  `cedula_identidad_tecnico` VARCHAR(20) NOT NULL COMMENT 'Cédula del técnico responsable',
+  `cedula_identidad_cliente` VARCHAR(20) DEFAULT NULL COMMENT 'Cédula del cliente asociado (opcional)',
+  `tipo_trabajo` ENUM('instalacion', 'mantenimiento', 'reemplazo') NOT NULL COMMENT 'Tipo de trabajo',
+  `fabricante` VARCHAR(100) NOT NULL COMMENT 'Nombre del fabricante',
+  `modelo` VARCHAR(100) NOT NULL COMMENT 'Modelo de la caja NAP',
+  `numero_serie` VARCHAR(100) NOT NULL COMMENT 'Número de serie único',
+  `codigo_caja` VARCHAR(50) NOT NULL COMMENT 'Código único de la caja',
+  `ubicacion` VARCHAR(255) NOT NULL COMMENT 'Dirección o coordenadas GPS',
+  `capacidad` VARCHAR(50) NOT NULL COMMENT 'Capacidad descriptiva',
+  `total_puertos` INT NOT NULL COMMENT 'Número total de puertos (1-16)',
+  `puertos_disponibles` INT NOT NULL COMMENT 'Puertos disponibles',
+  `puertos_ocupados` INT NOT NULL COMMENT 'Puertos ocupados',
+  `potencia_dbm` DECIMAL(10,2) DEFAULT NULL COMMENT 'Potencia óptica promedio en dBm',
+  `estado` ENUM('activa', 'inactiva', 'mantenimiento') NOT NULL COMMENT 'Estado de la caja',
+  `tipo_caja` VARCHAR(50) NOT NULL COMMENT 'Tipo de caja',
+  `tipo_conector` VARCHAR(20) NOT NULL COMMENT 'Tipo de conector',
+  `dimensiones` VARCHAR(50) NOT NULL COMMENT 'Dimensiones en mm',
+  `material` VARCHAR(50) NOT NULL COMMENT 'Material de la caja',
+  `grado_proteccion` VARCHAR(20) NOT NULL COMMENT 'Grado de protección (ej. IP65)',
+  `descripcion_equipo` TEXT COMMENT 'Detalles del equipo',
+  `codigo_qr` ENUM('QR', 'barra') DEFAULT 'barra' COMMENT 'Tipo de código identificador',
+  `observaciones` TEXT COMMENT 'Notas adicionales',
+  `creado_en` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro',
+  PRIMARY KEY (`id_hoja_caja`),
+  UNIQUE KEY `uk_numero_serie` (`numero_serie`),
+  CONSTRAINT `fk_hoja_caja` FOREIGN KEY (`id_caja`) REFERENCES `tbl_cajas_nap` (`id_caja`) ON DELETE CASCADE,
+  CONSTRAINT `fk_hoja_tecnico` FOREIGN KEY (`cedula_identidad_tecnico`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_hoja_cliente` FOREIGN KEY (`cedula_identidad_cliente`) REFERENCES `tbl_usuarios` (`cedula_identidad`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla: tbl_clientes_productos_servicios
+-- Registra asignaciones de servicios a clientes
+CREATE TABLE `tbl_clientes_productos_servicios` (
+  `id_asignacion` INT NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la asignación',
+  `id_cliente` INT NOT NULL COMMENT 'Cliente asociado',
+  `fecha_asignacion` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de asignación',
+  `estado` ENUM('activo', 'finalizado', 'pendiente') DEFAULT 'pendiente' COMMENT 'Estado de la asignación',
+  PRIMARY KEY (`id_asignacion`),
+  CONSTRAINT `fk_asignacion_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `tbl_clientes` (`id_cliente`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE tbl_productos (
+    id_producto INT PRIMARY KEY AUTO_INCREMENT COMMENT 'Identificador único del producto',
+    tipo_producto ENUM('caja_nap', 'splitter', 'conector', 'cable', 'otro') NOT NULL COMMENT 'Tipo de producto',
+    marca VARCHAR(50) NOT NULL COMMENT 'Marca del producto',
+    nombre VARCHAR(100) NOT NULL COMMENT 'Nombre del producto (ej. Caja NAP 16 puertos)',
+    descripcion TEXT COMMENT 'Detalles del producto',
+    precio DECIMAL(10,2) NOT NULL COMMENT 'Precio del producto en moneda local',
+    imagen VARCHAR(255) NOT NULL COMMENT 'Ruta o URL de la imagen del producto',
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Confirmar transacción
+COMMIT;

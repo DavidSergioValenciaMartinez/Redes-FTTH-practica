@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /FTTH1/
+
+# Verificar si el archivo o directorio existe
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirigir todas las solicitudes a index.php
+RewriteRule ^(.*)$ index.php [QSA,L] 

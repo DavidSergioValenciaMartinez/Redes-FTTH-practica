@@ -1,0 +1,309 @@
+/* Estilos generales */
+:root {
+    --primary-color: #0056b3;
+    --secondary-color: #6c757d;
+    --accent-color: #17a2b8;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f7fa;
+}
+
+.main-content {
+    flex: 1 0 auto;
+    min-height: calc(100vh - 400px); /* Altura mínima para que el footer no suba */
+}
+
+/* Barra de navegación */
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+    transform: translateY(-2px);
+}
+
+/* Botones */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #004494;
+    border-color: #004494;
+}
+
+/* Tarjetas */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Sección de héroe */
+.hero-section {
+    background: linear-gradient(135deg, #0056b3 0%, #00bcd4 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 2rem;
+}
+
+/* Componentes para el catálogo */
+.blur-content {
+    filter: blur(3px);
+    pointer-events: none;
+}
+
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    pointer-events: auto;
+}
+
+.product-image-container {
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+.product-image-container:hover {
+    background-color: #e9ecef;
+}
+
+.product-item .card-title {
+    font-weight: 500;
+    margin-bottom: 10px;
+    height: 50px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.product-item .card-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    height: 60px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* Íconos específicos para tipos de productos */
+.product-type-caja_nap .fa-box:before {
+    content: "\f49c"; /* ícono de caja de red */
+}
+
+.product-type-splitter .fa-box:before {
+    content: "\f1e0"; /* ícono de compartir */
+}
+
+.product-type-conector .fa-box:before {
+    content: "\f1e6"; /* ícono de conexión */
+}
+
+.product-type-cable .fa-box:before {
+    content: "\f1e2"; /* ícono de cable */
+}
+
+/* Componentes para la página de consulta */
+.port {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.port:hover {
+    transform: scale(1.1);
+}
+
+.port-green {
+    background-color: #28a745;
+    color: white;
+}
+
+.port-red {
+    background-color: #dc3545;
+    color: white;
+}
+
+.port-yellow {
+    background-color: #ffc107;
+    color: black;
+}
+
+.port-gray {
+    background-color: #6c757d;
+    color: white;
+}
+
+.splitter-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Componentes para la página de soporte */
+.chat-container {
+    height: 300px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.chat-message {
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    max-width: 80%;
+}
+
+.chat-message.user {
+    background-color: #e3f2fd;
+    margin-left: auto;
+}
+
+.chat-message.support {
+    background-color: #f1f1f1;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 2rem 0;
+    margin-top: auto !important;
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-in {
+    animation: slideIn 0.5s;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Estilo alternativo */
+.alt-style {
+    --primary-color: #6200ea;
+    --secondary-color: #03dac6;
+    --accent-color: #bb86fc;
+    --success-color: #00c853;
+    --danger-color: #ff1744;
+    --warning-color: #ffab00;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+.alt-style .navbar {
+    background-color: #222 !important;
+}
+
+.alt-style .navbar-brand,
+.alt-style .nav-link,
+.alt-style .dropdown-toggle {
+    color: #f0f0f0 !important;
+}
+
+.alt-style .hero-section {
+    background: linear-gradient(135deg, #6200ea 0%, #bb86fc 100%);
+}
+
+.alt-style .card {
+    background-color: #333;
+    color: #f0f0f0;
+    border-color: #444;
+}
+
+.alt-style .card-header {
+    background-color: #2a2a2a;
+    border-bottom-color: #444;
+}
+
+.alt-style .footer {
+    background-color: #222 !important;
+}
+
+/* Corrección para páginas con poco contenido */
+main {
+    min-height: calc(100vh - 350px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .chat-container {
+        height: 250px;
+    }
+    
+    .main-content {
+        min-height: calc(100vh - 500px);
+    }
+} 
